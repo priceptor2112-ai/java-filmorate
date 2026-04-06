@@ -29,7 +29,7 @@ class FilmControllerTest {
         Film created = filmController.createFilm(film);
 
         assertNotNull(created.getId());
-        assertEquals(1, created.getId());
+        assertEquals(1L, created.getId());  // Исправлено: 1L вместо 1
         assertEquals("Тестовый фильм", created.getName());
         assertEquals(120, created.getDuration());
     }
@@ -44,7 +44,7 @@ class FilmControllerTest {
 
         ValidationException exception = assertThrows(ValidationException.class,
                 () -> filmController.createFilm(film));
-        assertEquals("Название фильма не может быть пустым", exception.getMessage());
+        assertEquals("Название не может быть пустым", exception.getMessage());
     }
 
     @Test
@@ -57,7 +57,7 @@ class FilmControllerTest {
 
         ValidationException exception = assertThrows(ValidationException.class,
                 () -> filmController.createFilm(film));
-        assertEquals("Название фильма не может быть пустым", exception.getMessage());
+        assertEquals("Название не может быть пустым", exception.getMessage());
     }
 
     @Test
@@ -149,7 +149,6 @@ class FilmControllerTest {
 
     @Test
     void shouldUpdateExistingFilm() {
-        // Создаем фильм
         Film film = new Film();
         film.setName("Старое название");
         film.setDescription("Старое описание");
@@ -157,8 +156,8 @@ class FilmControllerTest {
         film.setDuration(120);
 
         Film created = filmController.createFilm(film);
+        Long filmId = created.getId();  // Сохраняем Long
 
-        // Обновляем фильм
         created.setName("Новое название");
         created.setDescription("Новое описание");
 
@@ -166,13 +165,14 @@ class FilmControllerTest {
 
         assertEquals("Новое название", updated.getName());
         assertEquals("Новое описание", updated.getDescription());
+        assertEquals(filmId, updated.getId());  // Сравниваем Long
         assertEquals(1, filmController.getAllFilms().size());
     }
 
     @Test
     void shouldNotUpdateNonExistingFilm() {
         Film film = new Film();
-        film.setId(999);
+        film.setId(999L);  // Исправлено: 999L
         film.setName("Фильм");
         film.setDescription("Описание");
         film.setReleaseDate(LocalDate.of(2000, 1, 1));
