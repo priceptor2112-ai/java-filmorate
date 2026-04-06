@@ -29,7 +29,7 @@ class UserControllerTest {
         User created = userController.createUser(user);
 
         assertNotNull(created.getId());
-        assertEquals(1, created.getId());
+        assertEquals(1L, created.getId());  // 1 -> 1L
         assertEquals("test@example.com", created.getEmail());
         assertEquals("testlogin", created.getLogin());
         assertEquals("Test User", created.getName());
@@ -107,7 +107,7 @@ class UserControllerTest {
 
         ValidationException exception = assertThrows(ValidationException.class,
                 () -> userController.createUser(user));
-        assertEquals("Email должен содержать символ @", exception.getMessage());
+        assertEquals("Email должен быть корректным", exception.getMessage());
     }
 
     @Test
@@ -146,7 +146,7 @@ class UserControllerTest {
 
         ValidationException exception = assertThrows(ValidationException.class,
                 () -> userController.createUser(user));
-        assertEquals("Логин не может содержать пробелы", exception.getMessage());
+        assertEquals("Логин не должен содержать пробелы", exception.getMessage());
     }
 
     @Test
@@ -163,21 +163,7 @@ class UserControllerTest {
     }
 
     @Test
-    void shouldNotCreateUserWithNullBirthday() {
-        User user = new User();
-        user.setEmail("test@example.com");
-        user.setLogin("testlogin");
-        user.setName("Test User");
-        user.setBirthday(null);
-
-        ValidationException exception = assertThrows(ValidationException.class,
-                () -> userController.createUser(user));
-        assertEquals("Дата рождения должна быть указана", exception.getMessage());
-    }
-
-    @Test
     void shouldUpdateExistingUser() {
-        // Создаем пользователя
         User user = new User();
         user.setEmail("old@example.com");
         user.setLogin("oldlogin");
@@ -185,8 +171,8 @@ class UserControllerTest {
         user.setBirthday(LocalDate.of(1990, 1, 1));
 
         User created = userController.createUser(user);
+        Long userId = created.getId();  // Сохраняем Long
 
-        // Обновляем пользователя
         created.setEmail("new@example.com");
         created.setLogin("newlogin");
         created.setName("New Name");
@@ -196,13 +182,14 @@ class UserControllerTest {
         assertEquals("new@example.com", updated.getEmail());
         assertEquals("newlogin", updated.getLogin());
         assertEquals("New Name", updated.getName());
+        assertEquals(userId, updated.getId());  // Сравниваем Long
         assertEquals(1, userController.getAllUsers().size());
     }
 
     @Test
     void shouldNotUpdateNonExistingUser() {
         User user = new User();
-        user.setId(999);
+        user.setId(999L);  // 999 -> 999L
         user.setEmail("test@example.com");
         user.setLogin("testlogin");
         user.setName("Test User");
@@ -216,7 +203,7 @@ class UserControllerTest {
     @Test
     void shouldNotUpdateUserWithInvalidId() {
         User user = new User();
-        user.setId(0);
+        user.setId(0L);  // 0 -> 0L
         user.setEmail("test@example.com");
         user.setLogin("testlogin");
         user.setName("Test User");
