@@ -11,7 +11,8 @@ import ru.yandex.practicum.filmorate.storage.film.FilmStorage;
 import ru.yandex.practicum.filmorate.storage.like.LikeDbStorage;
 import ru.yandex.practicum.filmorate.storage.user.UserStorage;
 
-import java.util.List;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 public class FilmService {
@@ -79,5 +80,44 @@ public class FilmService {
 
     public Film delete(Long filmId) {
         return filmStorage.delete(filmId);
+    }
+
+    public List<Film> getCommonFilms(Long userId, Long friendId) {
+        // Проверяем, что оба пользователя существуют
+        try {
+            userStorage.getUserById(userId);
+        } catch (UserNotFoundException e) {
+            throw new UserNotFoundException("Пользователь c ID=" + userId + " не найден!");
+        }
+        try {
+            userStorage.getUserById(friendId);
+        } catch (UserNotFoundException e) {
+            throw new UserNotFoundException("Пользователь c ID=" + friendId + " не найден!");
+        }
+
+        List<Film> allFilms = filmStorage.getFilms();
+
+        Set<Long> userLikes = allFilms.stream()
+                .filter(film -> film.getLikes() != null && film.getLikes().contains(userId))
+                .map(Film::getId)
+                .collect(Collectors.toSet());
+
+        Set<Long> friendLikes = allFilms.stream()
+                .filter(film -> film.getLikes() != null && film.getLikes().contains(friendId))
+                .map(Film::getId)
+                .collect(Collectors.toSet());
+
+        Set<Long> commonFilmIds = new HashSet<>(userLikes);
+        commonFilmIds.retainAll(friendLikes);
+
+        return commonFilmIds.stream()
+                .map(filmStorage::getFilmById)
+                .filter(Objects::nonNull)
+                .sorted((f1, f2) -> {
+                    int size1 = f1.getLikes() != null ? f1.getLikes().size() : 0;
+                    int size2 = f2.getLikes() != null ? f2.getLikes().size() : 0;
+                    return Integer.compare(size2, size1);
+                })
+                .collect(Collectors.toList());
     }
 }

@@ -16,7 +16,6 @@ import java.util.List;
 public class FilmController {
     private final FilmService filmService;
 
-
     @GetMapping
     public List<Film> getFilms() {
         return filmService.getFilms();
@@ -30,6 +29,13 @@ public class FilmController {
     @GetMapping("/popular")
     public List<Film> getPopular(@RequestParam(name = "count", defaultValue = "10") Integer count) {
         return filmService.getPopular(count);
+    }
+
+    @GetMapping("/common")
+    public List<Film> getCommonFilms(@RequestParam Long userId,
+                                     @RequestParam Long friendId) {
+        log.info("Получен GET-запрос к эндпоинту: '/films/common' с userId={} и friendId={}", userId, friendId);
+        return filmService.getCommonFilms(userId, friendId);
     }
 
     @ResponseBody
